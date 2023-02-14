@@ -1,59 +1,55 @@
 <script>
-	import Counter from './Counter.svelte';
-	import welcome from '$lib/images/svelte-welcome.webp';
-	import welcome_fallback from '$lib/images/svelte-welcome.png';
+	import Welcome from "../screens/Welcome.svelte";
+	import Game from "../screens/Game.svelte";
+	import { select } from '../utils/select';
+	import { onMount } from 'svelte';
+
+	let celebs_promise;
+	let state = 'welcome'; // 'welcome' or 'playing'
+	let selection;
+
+	const start = async (e) => {
+		const { celebs, lookup } = await celebs_promise;
+
+		selection = select(celebs, lookup, e.detail.category.slug);
+		state = 'playing';
+	};
+
+	const load_celebs = async () => {
+		const res = await fetch('https://cameo-explorer.netlify.app/celebs.json');
+		const data = await res.json();
+
+		const lookup = new Map();
+
+		data.forEach(c => {
+			lookup.set(c.id, c);
+		});
+
+		const subset = new Set();
+		data.forEach(celeb => {
+			if (celeb.reviews >= 50) {
+				subset.add(celeb);
+				celeb.similar.forEach(id => {
+					subset.add(lookup.get(id));
+				});
+			}
+		});
+
+		return {
+			celebs: Array.from(subset),
+			lookup
+		};
+	};
+
+	onMount(() => {
+		celebs_promise = load_celebs();
+	});
 </script>
 
-<svelte:head>
-	<title>Home</title>
-	<meta name="description" content="Svelte demo app" />
-</svelte:head>
-
 <section>
-	<h1>
-		<span class="welcome">
-			<picture>
-				<source srcset={welcome} type="image/webp" />
-				<img src={welcome_fallback} alt="Welcome" />
-			</picture>
-		</span>
-
-		to your new<br />SvelteKit app
-	</h1>
-
-	<h2>
-		try editing <strong>src/routes/+page.svelte</strong>
-	</h2>
-
-	<Counter />
+	{#if state === 'welcome'}
+		<Welcome on:select={start}/>
+	{:else if state === 'playing'}
+		<Game {selection}/>
+	{/if}
 </section>
-
-<style>
-	section {
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: center;
-		flex: 0.6;
-	}
-
-	h1 {
-		width: 100%;
-	}
-
-	.welcome {
-		display: block;
-		position: relative;
-		width: 100%;
-		height: 0;
-		padding: 0 0 calc(100% * 495 / 2048) 0;
-	}
-
-	.welcome img {
-		position: absolute;
-		width: 100%;
-		height: 100%;
-		top: 0;
-		display: block;
-	}
-</style>
