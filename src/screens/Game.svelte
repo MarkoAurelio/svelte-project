@@ -1,7 +1,11 @@
 <script>
+	import { createEventDispatcher } from "svelte";
 	import Card from "../components/Card.svelte";
+	import { sleep, pick_random } from '../utils/select'
 
     export let selection;
+
+	const dispatch = createEventDispatcher();
 
     const load_details = async (celeb) => {
 		const res = await fetch(`https://cameo-explorer.netlify.app/celebs/${celeb.id}.json`);
@@ -13,64 +17,104 @@
 		load_details(round.b)
 	]));
 
-    let i = 1;
+	const results = Array(selection.length);
 
-	const submit = (a, b, sign) => {
-		const result = Math.sign(a.price - b.price) === sign
+	let last_result;
+	let done = false;
+
+	$: score = results.filter(x => x === 'right').length;
+
+	const pick_message = p => {
+		if (p <= 0.2) return pick_random([`Oof.`, `Better luck next time?`]);
+		if (p <= 0.5) return pick_random([`I've seen worse`, `Keep trying!`]);
+		if (p <= 0.8) return pick_random([`Yeah!`, `Not bad. Practice makes perfect`]);
+		if (p < 1) return pick_random([`Impressive.`]);
+		return pick_random([`Flawless victory`, `Top marks`]);
+	};
+
+	const submit = async (a, b, sign) => {
+		last_result = Math.sign(a.price - b.price) === sign
 			? 'right'
 			: 'wrong';
-			console.log('result', result)
-		if(i  < selection.length - 1) {
+
+		await sleep(150);
+
+		results[i] = last_result;
+		last_result = null;
+
+		if (i < selection.length - 1) {
 			i += 1;
 		} else {
-			//todo
+			done = true;
 		}
 	};
+
+    let i = 0;
 </script>
 
-<section>
-    <header>
-        <p>Tap on the more monetisable celebrity's face, or tap 'same price' if society values them equally.</p>
-    </header>
-    <Card />
-    <div class="game-container">
+<header>
+	<p>Tap on the more monetisable celebrity's face, or tap 'same price' if society values them equally.</p>
+</header>
+
+<div class="game-container">
+	{#if done}
+		<div class="done">
+			<strong>{score}/{results.length}</strong>
+			<p>{pick_message(score / results.length)}</p>
+			<button on:click={() => dispatch('restart')}>Back to main screen</button>
+		</div>
+	{:else}
 		{#await promises[i] then [a, b]}
-            <div class="game">
-                <div class="card-container">
-                    <Card
+			<div class="game">
+				<div class="card-container">
+					<Card
 						celeb={a}
 						on:select={() => submit(a, b, 1)}
+						showprice={!!last_result}
+						winner={a.price >= b.price}
 					/>
-                </div>
+				</div>
 
-                <div>
-                    <button
-						class="same"
-						on:click={() => submit(a, b, 0)}
-					>
-                        Same price
-                    </button>
-                </div>
+				<div>
+					<button class="same" on:click={() => submit(a, b, 0)}>
+						same price
+					</button>
+				</div>
 
-                <div class="card-container">
-                    <Card
+				<div class="card-container">
+					<Card
 						celeb={b}
 						on:select={() => submit(a, b, -1)}
+						showprice={!!last_result}
+						winner={b.price >= a.price}
 					/>
-                </div>
-            </div>
-        {:catch}
-            <p class="error">Oops! </p>
-        {/await}
-    </div>
+				</div>
+			</div>
+		{:catch}
+			<p class="error">Oops! Failed to load data</p>
+		{/await}
+	{/if}
+</div>
 
-    <div class="results">
-        <p>results will go here</p>
-    </div>
-</section>
+	{#if last_result}
+		<img src="src/lib/images/{last_result}.svg" alt="{last_result} answer" class="giant-result">
+	{/if}
+
+    <div class="results" style="grid-template-columns: repeat({results.length + 1}, 1fr)">
+		{#each results as result}
+			<span class="result">
+				{#if result}
+					<img
+						alt="{result} answer"
+						src="src/lib/images/{result}.svg"
+					>
+				{/if}
+			</span>
+		{/each}
+	</div>
 
 <style>
-    .game-container {
+	.game-container {
 		flex: 1;
 	}
 

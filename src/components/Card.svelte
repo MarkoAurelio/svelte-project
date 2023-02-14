@@ -4,6 +4,8 @@
     const dispatch = createEventDispatcher();
 
     export let celeb;
+    export let showprice;
+    export let winner;
     
 
 </script>
@@ -17,6 +19,12 @@
                 </h2>
                 <p class="type">{celeb.type}</p>
             </div>
+
+            {#if showprice}
+                <div class="price" class:large={winner}>
+                    <span>${celeb.price}</span>
+                </div>
+            {/if}
         </button>
     </div>   
 {/if}

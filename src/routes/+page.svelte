@@ -46,10 +46,8 @@
 	});
 </script>
 
-<section>
-	{#if state === 'welcome'}
-		<Welcome on:select={start}/>
-	{:else if state === 'playing'}
-		<Game {selection}/>
-	{/if}
-</section>
+{#if state === 'welcome'}
+	<Welcome on:select={start}/>
+{:else if state === 'playing'}
+	<Game {selection} on:restart={() => state = 'welcome'}/>
+{/if}

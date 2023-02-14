@@ -1,6 +1,12 @@
-function pick_random(array) {
+export const pick_random = (array) => {
 	const index = Math.floor(array.length * Math.random());
 	return array[index];
+}
+
+export const sleep = (ms) => {
+	return new Promise(fulfil => {
+		setTimeout(fulfil, ms)
+	})
 }
 
 const ROUNDS_PER_GAME = 10;
