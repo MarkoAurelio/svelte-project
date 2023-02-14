@@ -1,7 +1,7 @@
 <script>
 	import Welcome from "../screens/Welcome.svelte";
 	import Game from "../screens/Game.svelte";
-	import { select } from '../utils/select';
+	import { select, load_image } from '../utils/select';
 	import { onMount } from 'svelte';
 
 	let celebs_promise;
@@ -43,6 +43,8 @@
 
 	onMount(() => {
 		celebs_promise = load_celebs();
+		load_image('src/lib/images/right.svg')
+		load_image('src/lib/images/wrong.svg')
 	});
 </script>
 

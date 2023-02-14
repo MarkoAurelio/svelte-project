@@ -9,6 +9,15 @@ export const sleep = (ms) => {
 	})
 }
 
+export const load_image = (src) => {
+	return new Promise((fulfil, reject) => {
+		const img = new Image();
+		img.onload = () => fulfil(img);
+		img.onerror = reject;
+		img.src = src;
+	})
+}
+
 const ROUNDS_PER_GAME = 10;
 
 function remove(array, index) {
