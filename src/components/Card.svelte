@@ -8,8 +8,6 @@
     export let celeb;
     export let showprice;
     export let winner;
-    
-
 </script>
 
 {#if celeb}

@@ -1,3 +1,7 @@
+<svelte:head>
+	<title>Cameoparison</title>
+</svelte:head>
+
 <script>
 	import Welcome from "../screens/Welcome.svelte";
 	import Game from "../screens/Game.svelte";
